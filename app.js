@@ -1,3 +1,11 @@
+if (typeof window.TextDecoder === "undefined") {
+  window.TextDecoder = class {
+    decode(bytes) {
+      return decodeURIComponent(Array.from(bytes, byte => `%${byte.toString(16).padStart(2, "0")}`).join(""));
+    }
+  };
+}
+
 (function () {
   const repairText = value => {
     if (typeof value !== "string" || !/[\u00c2\u00c3\u00e2]/.test(value)) return value;
