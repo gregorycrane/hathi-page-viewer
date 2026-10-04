@@ -1,14 +1,15 @@
 # Hathi Page Desk
 
-A static, dependency-free prototype for browsing corpus records and opening the corresponding HathiTrust page images.
+A static, dependency-free prototype for browsing page-mapped corpus records and opening exact HathiTrust scans.
 
 ## What it does
 
-- Searches and filters the six supplied test records.
+- Loads 2,889 records from the public Google Sheet and filters them by language.
+- Falls back to the uploaded CSV snapshot if the live sheet cannot be reached.
 - Constructs each HathiTrust ID as `hvd.{book}`.
 - Calls the public HathiTrust volume API and matches the exact ID in `items[]`.
 - Displays the live `rightsCode`, source institution, and count of related copies.
-- Builds a direct HathiTrust PageTurner link for any selected page scan.
+- Uses each record's `begin` and `end` values as scan bounds and builds a direct HathiTrust PageTurner link for the selected scan.
 - Highlights `pdus` records, whose full view may be geographically limited.
 
 No API key or build step is required. Serve the directory over HTTP for local testing:
@@ -21,11 +22,13 @@ Then open `http://localhost:8080`.
 
 ## GitHub Pages
 
-The included workflow publishes the site automatically. Push this directory as the root of a GitHub repository, then enable **Settings → Pages → Source: GitHub Actions**.
+The included workflow publishes the site automatically. Push this directory as the root of a GitHub repository, then enable **Settings â†’ Pages â†’ Source: GitHub Actions**.
 
-## Scaling beyond the prototype
+## Rebuilding the data
 
-The six records are in `data/records.js`. A 331,000-record deployment should not render or linearly search one giant browser array. A production version should generate a compact search index and paginated record shards during a data-preparation step, or query a small read-only search service. The viewer and HathiTrust lookup can remain unchanged.
+Run `node scripts/build-records.mjs data/records.csv data/records.js`. The page displays search results in batches of 100, avoiding a 2,889-card initial render. For a 331,000-record deployment, generate a compact search index and paginated record shards rather than linearly searching one giant browser array.
+
+The live source is the [IB1 Commentaries Google Sheet](https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/edit?gid=231332487#gid=231332487).
 
 ## Access note
 
