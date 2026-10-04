@@ -5,7 +5,7 @@
   const hathiDates = window.HATHI_DATES || {};
   const PAGE_SIZE = 100;
   const SHEET_QUERY = "https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/gviz/tq?tqx=responseHandler:hathiSheetLoaded&gid=231332487";
-  const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE, view: "overview" };
+  const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5" };
 
   const els = {
     list: document.querySelector("#record-list"),
@@ -52,6 +52,10 @@
     ,dateChart: document.querySelector("#date-chart")
     ,authorRanking: document.querySelector("#author-ranking")
     ,workRanking: document.querySelector("#work-ranking")
+    ,authorLimit: document.querySelector("#author-limit")
+    ,workLimit: document.querySelector("#work-limit")
+    ,authorSummary: document.querySelector("#author-summary")
+    ,workSummary: document.querySelector("#work-summary")
   };
 
   function escapeHTML(value) {
@@ -117,11 +121,23 @@
     showView("browse");
   }
 
-  function renderRanking(target, entries, formatter) {
-    target.innerHTML = entries.slice(0, 6).map(([label, count]) => {
+  function renderRanking(target, entries, formatter, requestedLimit, summary, noun) {
+    const showAll = requestedLimit === "all";
+    const limit = showAll ? entries.length : Number(requestedLimit);
+    target.closest(".ranking-card").classList.toggle("is-expanded", showAll);
+    summary.textContent = showAll ? `All ${entries.length.toLocaleString()} ${noun}` : `Top ${limit.toLocaleString()} of ${entries.length.toLocaleString()} ${noun}`;
+    target.innerHTML = entries.slice(0, limit).map(([label, count]) => {
       const display = formatter ? formatter(label) : label;
       return `<li><button type="button" data-query="${escapeHTML(display.query)}"><span>${escapeHTML(display.label)}</span><strong>${count.toLocaleString()}</strong></button></li>`;
     }).join("");
+  }
+
+  function renderRankings() {
+    renderRanking(els.authorRanking, countBy(records, record => record.workAuthor), label => ({ label, query: label }), state.authorLimit, els.authorSummary, "authors");
+    renderRanking(els.workRanking, countBy(records, record => `${record.workAuthor}\t${record.workTitle}`), label => {
+      const [author, title] = label.split("\t");
+      return { label: `${title} \u2014 ${author}`, query: title };
+    }, state.workLimit, els.workSummary, "works");
   }
 
   function renderDashboard() {
@@ -162,11 +178,7 @@
     const periodMax = Math.max(...periods.map(period => period[1]), 1);
     els.dateChart.innerHTML = periods.map(([label, count]) => `<div><span>${label}</span><span class="date-track"><span style="width:${(count / periodMax * 100).toFixed(2)}%"></span></span><strong>${count.toLocaleString()}</strong></div>`).join("");
 
-    renderRanking(els.authorRanking, countBy(records, record => record.workAuthor), label => ({ label, query: label }));
-    renderRanking(els.workRanking, countBy(records, record => `${record.workAuthor}\t${record.workTitle}`), label => {
-      const [author, title] = label.split("\t");
-      return { label: `${title} \u2014 ${author}`, query: title };
-    });
+    renderRankings();
   }
 
   function recordFromCells(columns, cells) {
@@ -351,6 +363,14 @@
     const button = event.target.closest("[data-query]");
     if (button) runSearch(button.dataset.query);
   }));
+  els.authorLimit.addEventListener("change", event => {
+    state.authorLimit = event.target.value;
+    renderRankings();
+  });
+  els.workLimit.addEventListener("change", event => {
+    state.workLimit = event.target.value;
+    renderRankings();
+  });
 
   els.refresh.addEventListener("click", () => refreshAPI(records[state.selected]));
   els.scanNumber.addEventListener("change", event => setSequence(event.target.value));
