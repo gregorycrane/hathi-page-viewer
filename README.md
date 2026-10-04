@@ -8,6 +8,7 @@ A static, dependency-free prototype for browsing page-mapped corpus records and 
 - Falls back to a compact bundled sample if the live sheet cannot be reached.
 - Constructs each HathiTrust ID as `hvd.{book}`.
 - Calls the public HathiTrust volume API and matches the exact ID in `items[]`.
+- Displays a generated HathiTrust bibliographic index with full MARC titles, publication dates, publishers, editors, volume labels, and physical descriptions.
 - Displays the live `rightsCode`, source institution, and count of related copies.
 - Uses each record's `begin` and `end` values as scan bounds and builds a direct HathiTrust PageTurner link for the selected scan.
 - Highlights `pdus` records, whose full view may be geographically limited.
@@ -22,13 +23,15 @@ Then open `http://localhost:8080`.
 
 ## GitHub Pages
 
-The included workflow publishes the site automatically. Push this directory as the root of a GitHub repository, then enable **Settings â†’ Pages â†’ Source: GitHub Actions**.
+The included workflow publishes the site automatically. Push this directory as the root of a GitHub repository, then enable **Settings -> Pages -> Source: GitHub Actions**.
 
 ## Data source and rebuilding
 
 The live source is the [IB1 Commentaries Google Sheet](https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/edit?gid=231332487#gid=231332487).
 
 Download the sheet as `data/records.csv`, then run `node scripts/build-records.mjs data/records.csv data/records.js` to rebuild the bundled fallback. The page displays search results in batches of 100, avoiding a 2,889-card initial render. For a 331,000-record deployment, generate a compact search index and paginated record shards rather than linearly searching one giant browser array.
+
+Rebuild the bibliographic index with `node scripts/build-biblio.mjs data/records.js data/biblio.js`. This reads the HathiTrust volume API and extracts the relevant MARC fields for each unique volume.
 
 ## Access note
 
