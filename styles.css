@@ -144,6 +144,11 @@ a { color: inherit; }
 .row-pages { color: var(--muted); font-size: 10px; font-weight: 700; }
 .row-title { width: 100%; max-width: 100%; display: block; overflow-wrap: anywhere; font: 600 16px/1.25 var(--serif); }
 .row-author { display: block; margin: 4px 0 10px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.row-bibliography { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; margin: 0 0 12px; padding: 10px 0; border-top: 1px solid rgba(216,208,194,.72); border-bottom: 1px solid rgba(216,208,194,.72); }
+.row-bibliography > div { min-width: 0; }
+.row-bibliography dt { margin: 0 0 1px; color: var(--rust); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.row-bibliography dd { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.35; overflow-wrap: anywhere; }
+.row-bibliography > div:nth-child(4), .row-bibliography > div:nth-child(5) { grid-column: 1 / -1; }
 .row-footer { min-width: 0; max-width: 100%; flex-wrap: wrap; align-items: flex-start; color: #7a837e; font-size: 10px; }
 .row-footer code { min-width: 0; flex: 1 1 120px; color: var(--forest-deep); font-size: 10px; overflow-wrap: anywhere; white-space: normal; }
 .row-work-title { min-width: 0; max-width: 100%; flex: 1 1 140px; text-align: right; overflow-wrap: anywhere; white-space: normal; }
@@ -276,6 +281,8 @@ a { color: inherit; }
   .record-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 5px; }
   .record-list li { min-width: min(82vw, 310px); scroll-snap-align: start; }
   .record-row { min-height: 145px; background: rgba(255,255,255,.35); }
+  .row-bibliography { grid-template-columns: 1fr; }
+  .row-bibliography > div:nth-child(4), .row-bibliography > div:nth-child(5) { grid-column: auto; }
   .workspace { padding: 24px 14px 34px; }
   .dashboard-hero { display: block; }
   .dashboard-hero .button { margin-top: 16px; }
