@@ -1,43 +1,8 @@
-if (typeof window.TextDecoder === "undefined") {
-  window.TextDecoder = class {
-    decode(bytes) {
-      return decodeURIComponent(Array.from(bytes, byte => `%${byte.toString(16).padStart(2, "0")}`).join(""));
-    }
-  };
-}
-
-(function () {
-  const repairText = value => {
-    if (typeof value !== "string" || !/[\u00c2\u00c3\u00e2]/.test(value)) return value;
-    try {
-      return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(Array.from(value), char => char.charCodeAt(0)));
-    } catch {
-      return value;
-    }
-  };
-  (window.HATHI_RECORDS || []).forEach(record => {
-    record.title = repairText(record.title);
-    record.author = repairText(record.author);
-  });
-  const repairNode = node => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const fixed = repairText(node.nodeValue);
-      if (fixed !== node.nodeValue) node.nodeValue = fixed;
-    } else {
-      node.childNodes.forEach(repairNode);
-    }
-  };
-  new MutationObserver(records => records.forEach(record => {
-    repairNode(record.target);
-    record.addedNodes.forEach(repairNode);
-  })).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
-})();
-
 (function () {
   "use strict";
 
   const records = window.HATHI_RECORDS || [];
-  const state = { selected: 0, filter: "all", query: "", sequence: 1 };
+  const state = { selected: 0, filter: "all", query: "" };
 
   const els = {
     list: document.querySelector("#record-list"),
@@ -52,13 +17,6 @@ if (typeof window.TextDecoder === "undefined") {
     author: document.querySelector("#record-author"),
     apiLink: document.querySelector("#api-link"),
     hathiLink: document.querySelector("#hathi-link"),
-    pageLink: document.querySelector("#page-link"),
-    scanLabel: document.querySelector("#scan-label"),
-    launchLink: document.querySelector("#page-launch-link"),
-    pageNumber: document.querySelector("#page-number"),
-    previous: document.querySelector("#previous-page"),
-    next: document.querySelector("#next-page"),
-    viewerNote: document.querySelector("#viewer-note"),
     metadata: document.querySelector("#metadata-list"),
     measurements: document.querySelector("#measurement-list"),
     apiIndicator: document.querySelector("#api-indicator"),
@@ -83,10 +41,8 @@ if (typeof window.TextDecoder === "undefined") {
     return `https://catalog.hathitrust.org/api/volumes/full/htid/${encodeURIComponent(record.htid)}.json`;
   }
 
-  function handleURL(record, sequence, embedded) {
-    const params = [`seq=${sequence}`];
-    if (embedded) params.push("ui=embed");
-    return `https://hdl.handle.net/2027/${encodeURIComponent(record.htid)}?urlappend=${encodeURIComponent(";" + params.join(";"))}`;
+  function handleURL(record) {
+    return `https://hdl.handle.net/2027/${encodeURIComponent(record.htid)}`;
   }
 
   function visibleRecords() {
@@ -142,22 +98,11 @@ if (typeof window.TextDecoder === "undefined") {
       metadataRow("Lines", record.lc.toLocaleString()),
       metadataRow("Words", record.wc.toLocaleString()),
       metadataRow("Words / line", record.wordsPerLine.toFixed(2)),
-      metadataRow("OCR score", `${record.ocrSource} source \u00b7 ${record.ocrGenerated} generated`),
+      metadataRow("OCR scores (dataset)", `${record.ocrSource} source \u00b7 ${record.ocrGenerated} generated`),
       metadataRow("Cover", record.cover.toFixed(3)),
       metadataRow("Overlap", record.overlap.toFixed(3)),
       metadataRow("Weighted overlap", record.wover.toFixed(3))
     ].join("");
-  }
-
-  function updateViewer() {
-    const record = records[state.selected];
-    state.sequence = Math.max(1, Number.parseInt(els.pageNumber.value, 10) || 1);
-    els.pageNumber.value = state.sequence;
-    els.previous.disabled = state.sequence <= 1;
-    els.scanLabel.textContent = `Scan ${state.sequence.toLocaleString()}`;
-    els.launchLink.href = handleURL(record, state.sequence, false);
-    els.pageLink.href = handleURL(record, state.sequence, false);
-    els.hathiLink.href = handleURL(record, state.sequence, false);
   }
 
   async function refreshAPI(record) {
@@ -178,9 +123,6 @@ if (typeof window.TextDecoder === "undefined") {
       els.apiIndicator.className = "api-indicator";
       els.apiStatus.textContent = "HathiTrust confirmed";
       els.apiDetail.textContent = `${item.orig || "Unknown source"} \u00b7 ${payload.items.length} ${payload.items.length === 1 ? "copy" : "copies"}`;
-      els.viewerNote.textContent = record.rights === "pdus"
-        ? "This copy is marked pdus; full page access may be limited outside the United States."
-        : "This copy is marked public domain. Page images are delivered by HathiTrust.";
       renderList();
     } catch (error) {
       if (records[state.selected].htid !== requestedID) return;
@@ -192,8 +134,6 @@ if (typeof window.TextDecoder === "undefined") {
 
   function selectRecord(index) {
     state.selected = index;
-    state.sequence = 1;
-    els.pageNumber.value = 1;
     const record = records[index];
     els.title.textContent = record.title;
     els.author.textContent = record.author;
@@ -201,10 +141,9 @@ if (typeof window.TextDecoder === "undefined") {
     els.access.textContent = rightsLabel(record.rights);
     els.access.dataset.rights = record.rights;
     els.apiLink.href = apiURL(record);
-    els.viewerNote.textContent = "Page images are delivered by HathiTrust and remain subject to its access rules.";
+    els.hathiLink.href = handleURL(record);
     renderMetadata(record);
     renderList();
-    updateViewer();
     refreshAPI(record);
     history.replaceState(null, "", `#${encodeURIComponent(record.htid)}`);
   }
@@ -225,18 +164,6 @@ if (typeof window.TextDecoder === "undefined") {
     renderList();
   }));
 
-  els.previous.addEventListener("click", () => {
-    els.pageNumber.value = Math.max(1, state.sequence - 1);
-    updateViewer();
-  });
-  els.next.addEventListener("click", () => {
-    els.pageNumber.value = state.sequence + 1;
-    updateViewer();
-  });
-  els.pageNumber.addEventListener("change", updateViewer);
-  els.pageNumber.addEventListener("keydown", event => {
-    if (event.key === "Enter") updateViewer();
-  });
   els.refresh.addEventListener("click", () => refreshAPI(records[state.selected]));
 
   document.addEventListener("keydown", event => {
