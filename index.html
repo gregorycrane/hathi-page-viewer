@@ -69,42 +69,6 @@
       </article>
 
       <div class="content-grid">
-        <section class="viewer-card" aria-labelledby="viewer-title">
-          <div class="viewer-toolbar">
-            <div>
-              <p class="eyebrow">HathiTrust page image</p>
-              <h3 id="viewer-title">Page scan</h3>
-            </div>
-            <div class="page-controls" aria-label="Page scan controls">
-              <button class="icon-button" id="previous-page" type="button" aria-label="Previous page scan">←</button>
-              <label for="page-number">Scan</label>
-              <input id="page-number" type="number" min="1" value="1" inputmode="numeric">
-              <button class="icon-button" id="next-page" type="button" aria-label="Next page scan">→</button>
-            </div>
-          </div>
-
-          <div class="viewer-frame-wrap" id="viewer-wrap">
-            <div class="page-launch">
-              <div class="page-illustration" aria-hidden="true">
-                <span class="page-rule page-rule-short"></span>
-                <span class="page-rule"></span>
-                <span class="page-rule"></span>
-                <span class="page-rule"></span>
-                <span class="page-rule page-rule-short"></span>
-              </div>
-              <p class="eyebrow">Selected page</p>
-              <strong id="scan-label">Scan 1</strong>
-              <p>HathiTrust serves page images in its own viewer. Open this exact scan without searching for it again.</p>
-              <a class="button button-primary launch-button" id="page-launch-link" href="#" target="_blank" rel="noopener">View page image ↗</a>
-            </div>
-          </div>
-
-          <div class="viewer-footnote">
-            <p id="viewer-note">HathiTrust prevents reliable third-party framing, so the selected scan opens directly there.</p>
-            <a id="page-link" href="#" target="_blank" rel="noopener">Open this scan in a new tab ↗</a>
-          </div>
-        </section>
-
         <aside class="metadata-card" aria-labelledby="metadata-title">
           <div class="metadata-heading">
             <p class="eyebrow">Selected record</p>
@@ -125,7 +89,7 @@
           </div>
 
           <details class="technical-details">
-            <summary>Corpus measurements</summary>
+            <summary>Dataset measurements</summary>
             <dl id="measurement-list"></dl>
           </details>
         </aside>
@@ -150,7 +114,7 @@
     </li>
   </template>
 
-  <script charset="utf-8" src="data/records.js"></script>
-  <script charset="utf-8" src="app.js"></script>
+  <script src="data/records.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
