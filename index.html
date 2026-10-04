@@ -8,7 +8,7 @@
   <title>Hathi Page Desk</title>
   <link rel="preconnect" href="https://catalog.hathitrust.org">
   <link rel="preconnect" href="https://hdl.handle.net">
-  <link rel="stylesheet" href="styles.css?v=20261004-2">
+  <link rel="stylesheet" href="styles.css?v=20261004-3">
 </head>
 <body>
   <a class="skip-link" href="#record-detail">Skip to selected record</a>
@@ -31,9 +31,9 @@
       <div class="catalog-heading">
         <div>
           <p class="eyebrow">Page-mapped dataset</p>
-          <h1><span id="dataset-count">2,889</span> records</h1>
+          <h1><span id="result-count">2,889</span> matches</h1>
+          <p>from <span id="dataset-count">2,889</span> records</p>
         </div>
-        <span class="count" id="result-count">6</span>
       </div>
 
       <label class="search-box" for="search-input">
@@ -43,12 +43,12 @@
       </label>
 
       <div class="filter-row" role="group" aria-label="Filter records by language">
-        <button class="filter-chip is-active" type="button" data-filter="all">All</button>
-        <button class="filter-chip" type="button" data-filter="ell">Greek</button>
-        <button class="filter-chip" type="button" data-filter="lat">Latin</button>
-        <button class="filter-chip" type="button" data-filter="deu">German</button>
-        <button class="filter-chip" type="button" data-filter="eng">English</button>
-        <button class="filter-chip" type="button" data-filter="fra">French</button>
+        <button class="filter-chip is-active" type="button" data-filter="all"><span>All</span> <strong data-count-for="all">2,889</strong></button>
+        <button class="filter-chip" type="button" data-filter="ell"><span>Greek</span> <strong data-count-for="ell">684</strong></button>
+        <button class="filter-chip" type="button" data-filter="lat"><span>Latin</span> <strong data-count-for="lat">1,057</strong></button>
+        <button class="filter-chip" type="button" data-filter="deu"><span>German</span> <strong data-count-for="deu">556</strong></button>
+        <button class="filter-chip" type="button" data-filter="eng"><span>English</span> <strong data-count-for="eng">397</strong></button>
+        <button class="filter-chip" type="button" data-filter="fra"><span>French</span> <strong data-count-for="fra">146</strong></button>
       </div>
 
       <ol class="record-list" id="record-list" aria-live="polite"></ol>
@@ -57,6 +57,63 @@
     </aside>
 
     <section class="workspace" id="record-detail" tabindex="-1">
+      <nav class="view-tabs" aria-label="Viewer sections">
+        <button class="view-tab is-active" id="overview-tab" type="button">Dashboard</button>
+        <button class="view-tab" id="browse-tab" type="button">Selected record</button>
+      </nav>
+
+      <section class="dashboard" id="dashboard" aria-labelledby="dashboard-title">
+        <header class="dashboard-hero">
+          <div>
+            <p class="eyebrow">What is in the corpus?</p>
+            <h2 id="dashboard-title">Dataset overview</h2>
+            <p>Page mappings connect classical works to digitized HathiTrust volumes.</p>
+          </div>
+          <button class="button button-primary" id="browse-records" type="button">Browse records</button>
+        </header>
+
+        <div class="metric-grid">
+          <article class="metric-card"><strong id="stat-records">2,889</strong><span>Mapped records</span></article>
+          <article class="metric-card"><strong id="stat-volumes">1,488</strong><span>Hathi volumes</span></article>
+          <article class="metric-card"><strong id="stat-pages">336,113</strong><span>Mapped pages</span></article>
+          <article class="metric-card"><strong id="stat-works">732</strong><span>Classical works</span></article>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="dashboard-card language-card" aria-labelledby="language-title">
+            <div class="card-heading">
+              <div><p class="eyebrow">Records by language</p><h3 id="language-title">Language coverage</h3></div>
+              <span id="language-total">11 languages</span>
+            </div>
+            <div class="language-chart" id="language-chart"></div>
+          </section>
+
+          <section class="dashboard-card date-card" aria-labelledby="date-title">
+            <div class="card-heading">
+              <div><p class="eyebrow">HathiTrust metadata</p><h3 id="date-title">Publication dates</h3></div>
+              <span id="date-coverage">1,487 of 1,488 volumes</span>
+            </div>
+            <div class="date-summary">
+              <div><strong id="date-range">1644&ndash;1988</strong><span>Catalog range</span></div>
+              <div><strong id="date-median">1860</strong><span>Median year</span></div>
+            </div>
+            <div class="date-chart" id="date-chart" aria-label="Volumes by publication period"></div>
+            <p class="source-note">Dates come from each volume's HathiTrust bibliographic record. The uploaded CSV contains page mappings but no publication-year column.</p>
+          </section>
+
+          <section class="dashboard-card ranking-card" aria-labelledby="author-title">
+            <div class="card-heading"><div><p class="eyebrow">Most mapped</p><h3 id="author-title">Classical authors</h3></div></div>
+            <ol class="ranking-list" id="author-ranking"></ol>
+          </section>
+
+          <section class="dashboard-card ranking-card" aria-labelledby="work-title">
+            <div class="card-heading"><div><p class="eyebrow">Most mapped</p><h3 id="work-title">Classical works</h3></div></div>
+            <ol class="ranking-list" id="work-ranking"></ol>
+          </section>
+        </div>
+      </section>
+
+      <div class="browse-view" id="browse-view" hidden>
       <article class="record-header">
         <div class="record-title-block">
           <div class="status-line">
@@ -113,6 +170,7 @@
           </details>
         </aside>
       </div>
+      </div>
     </section>
   </main>
 
@@ -133,7 +191,8 @@
     </li>
   </template>
 
-  <script src="data/records.js?v=20261004-2"></script>
-  <script src="app.js?v=20261004-2"></script>
+  <script src="data/records.js?v=20261004-3"></script>
+  <script src="data/dates.js?v=20261004-3"></script>
+  <script src="app.js?v=20261004-3"></script>
 </body>
 </html>
