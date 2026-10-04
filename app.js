@@ -75,7 +75,7 @@ if (typeof window.TextDecoder === "undefined") {
 
   function rightsLabel(rights) {
     if (rights === "pd") return "Public domain";
-    if (rights === "pdus") return "Public domain â US";
+    if (rights === "pdus") return "Public domain \u2014 US";
     return "Rights unknown";
   }
 
@@ -111,7 +111,7 @@ if (typeof window.TextDecoder === "undefined") {
       button.dataset.index = index;
       button.classList.toggle("is-selected", index === state.selected);
       button.setAttribute("aria-current", index === state.selected ? "true" : "false");
-      node.querySelector(".row-year").textContent = record.year2 ? `${record.year}â${record.year2}` : record.year;
+      node.querySelector(".row-year").textContent = record.year2 ? `${record.year}\u2013${record.year2}` : record.year;
       const rights = node.querySelector(".row-rights");
       rights.textContent = record.rights;
       rights.dataset.rights = record.rights;
@@ -128,21 +128,21 @@ if (typeof window.TextDecoder === "undefined") {
   }
 
   function renderMetadata(record) {
-    const dates = record.date2 ? `${record.date1}â${record.date2}` : record.date1;
+    const dates = record.date2 ? `${record.date1}\u2013${record.date2}` : record.date1;
     els.metadata.innerHTML = [
       metadataRow("HathiTrust ID", record.htid, true),
       metadataRow("Dataset row", record.originalRow),
       metadataRow("Classification", record.classification),
       metadataRow("Type", record.type),
       metadataRow("Date", dates),
-      metadataRow("Languages", `${record.languageSource} source Â· ${record.languageGenerated} generated`)
+      metadataRow("Languages", `${record.languageSource} source \u00b7 ${record.languageGenerated} generated`)
     ].join("");
 
     els.measurements.innerHTML = [
       metadataRow("Lines", record.lc.toLocaleString()),
       metadataRow("Words", record.wc.toLocaleString()),
       metadataRow("Words / line", record.wordsPerLine.toFixed(2)),
-      metadataRow("OCR score", `${record.ocrSource} source Â· ${record.ocrGenerated} generated`),
+      metadataRow("OCR score", `${record.ocrSource} source \u00b7 ${record.ocrGenerated} generated`),
       metadataRow("Cover", record.cover.toFixed(3)),
       metadataRow("Overlap", record.overlap.toFixed(3)),
       metadataRow("Weighted overlap", record.wover.toFixed(3))
@@ -164,7 +164,7 @@ if (typeof window.TextDecoder === "undefined") {
     const requestedID = record.htid;
     els.apiIndicator.className = "api-indicator is-loading";
     els.apiStatus.textContent = "Checking HathiTrust";
-    els.apiDetail.textContent = "Matching the exact volume IDâ¦";
+    els.apiDetail.textContent = "Matching the exact volume ID\u2026";
     try {
       const response = await fetch(apiURL(record));
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -177,7 +177,7 @@ if (typeof window.TextDecoder === "undefined") {
       els.access.dataset.rights = record.rights;
       els.apiIndicator.className = "api-indicator";
       els.apiStatus.textContent = "HathiTrust confirmed";
-      els.apiDetail.textContent = `${item.orig || "Unknown source"} Â· ${payload.items.length} ${payload.items.length === 1 ? "copy" : "copies"}`;
+      els.apiDetail.textContent = `${item.orig || "Unknown source"} \u00b7 ${payload.items.length} ${payload.items.length === 1 ? "copy" : "copies"}`;
       els.viewerNote.textContent = record.rights === "pdus"
         ? "This copy is marked pdus; full page access may be limited outside the United States."
         : "This copy is marked public domain. Page images are delivered by HathiTrust.";
