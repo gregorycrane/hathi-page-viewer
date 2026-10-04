@@ -2,9 +2,10 @@
   "use strict";
 
   let records = window.HATHI_RECORDS || [];
+  const hathiDates = window.HATHI_DATES || {};
   const PAGE_SIZE = 100;
   const SHEET_QUERY = "https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/gviz/tq?tqx=responseHandler:hathiSheetLoaded&gid=231332487";
-  const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE };
+  const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE, view: "overview" };
 
   const els = {
     list: document.querySelector("#record-list"),
@@ -34,6 +35,23 @@
     nextScan: document.querySelector("#next-scan"),
     scanLink: document.querySelector("#scan-link"),
     loadMore: document.querySelector("#load-more")
+    ,dashboard: document.querySelector("#dashboard")
+    ,browseView: document.querySelector("#browse-view")
+    ,overviewTab: document.querySelector("#overview-tab")
+    ,browseTab: document.querySelector("#browse-tab")
+    ,browseRecords: document.querySelector("#browse-records")
+    ,statRecords: document.querySelector("#stat-records")
+    ,statVolumes: document.querySelector("#stat-volumes")
+    ,statPages: document.querySelector("#stat-pages")
+    ,statWorks: document.querySelector("#stat-works")
+    ,languageTotal: document.querySelector("#language-total")
+    ,languageChart: document.querySelector("#language-chart")
+    ,dateCoverage: document.querySelector("#date-coverage")
+    ,dateRange: document.querySelector("#date-range")
+    ,dateMedian: document.querySelector("#date-median")
+    ,dateChart: document.querySelector("#date-chart")
+    ,authorRanking: document.querySelector("#author-ranking")
+    ,workRanking: document.querySelector("#work-ranking")
   };
 
   function escapeHTML(value) {
@@ -58,6 +76,97 @@
 
   function languageLabel(language) {
     return ({ ell: "Greek", lat: "Latin", deu: "German", eng: "English", fra: "French", ita: "Italian", spa: "Spanish", dan: "Danish", rus: "Russian", nld: "Dutch", swe: "Swedish" })[language] || language;
+  }
+
+  function countBy(values, key) {
+    return [...values.reduce((counts, value) => {
+      const label = key(value);
+      counts.set(label, (counts.get(label) || 0) + 1);
+      return counts;
+    }, new Map())].sort((left, right) => right[1] - left[1]);
+  }
+
+  function publicationYears(htid) {
+    return (hathiDates[htid] || []).flatMap(value => String(value).match(/\b(1[5-9]\d{2}|20\d{2})\b/g) || []).map(Number).filter(year => year >= 1500 && year <= 2026);
+  }
+
+  function showView(view) {
+    state.view = view;
+    const overview = view === "overview";
+    els.dashboard.hidden = !overview;
+    els.browseView.hidden = overview;
+    els.overviewTab.classList.toggle("is-active", overview);
+    els.browseTab.classList.toggle("is-active", !overview);
+  }
+
+  function setLanguageFilter(language, revealBrowse) {
+    state.filter = language;
+    state.limit = PAGE_SIZE;
+    els.chips.forEach(chip => chip.classList.toggle("is-active", chip.dataset.filter === language));
+    renderList();
+    if (revealBrowse) showView("browse");
+  }
+
+  function runSearch(query) {
+    state.query = query;
+    state.filter = "all";
+    state.limit = PAGE_SIZE;
+    els.search.value = query;
+    els.chips.forEach(chip => chip.classList.toggle("is-active", chip.dataset.filter === "all"));
+    renderList();
+    showView("browse");
+  }
+
+  function renderRanking(target, entries, formatter) {
+    target.innerHTML = entries.slice(0, 6).map(([label, count]) => {
+      const display = formatter ? formatter(label) : label;
+      return `<li><button type="button" data-query="${escapeHTML(display.query)}"><span>${escapeHTML(display.label)}</span><strong>${count.toLocaleString()}</strong></button></li>`;
+    }).join("");
+  }
+
+  function renderDashboard() {
+    const volumes = [...new Set(records.map(record => record.htid))];
+    const languageCounts = countBy(records, record => record.language);
+    const totalPages = records.reduce((sum, record) => sum + record.pages, 0);
+    const works = new Set(records.map(record => record.work));
+    els.statRecords.textContent = records.length.toLocaleString();
+    els.statVolumes.textContent = volumes.length.toLocaleString();
+    els.statPages.textContent = totalPages.toLocaleString();
+    els.statWorks.textContent = works.size.toLocaleString();
+    els.languageTotal.textContent = `${languageCounts.length.toLocaleString()} languages`;
+
+    document.querySelectorAll("[data-count-for]").forEach(node => {
+      const language = node.dataset.countFor;
+      const count = language === "all" ? records.length : (languageCounts.find(entry => entry[0] === language)?.[1] || 0);
+      node.textContent = count.toLocaleString();
+    });
+
+    els.languageChart.innerHTML = languageCounts.map(([language, count]) => {
+      const percent = count / records.length * 100;
+      return `<button class="language-bar" type="button" data-language="${escapeHTML(language)}"><span class="bar-label"><strong>${escapeHTML(languageLabel(language))}</strong><em>${count.toLocaleString()} &middot; ${percent.toFixed(1)}%</em></span><span class="bar-track"><span style="width:${percent.toFixed(2)}%"></span></span></button>`;
+    }).join("");
+
+    const dated = volumes.map(htid => publicationYears(htid)).filter(years => years.length).map(years => Math.min(...years)).sort((a, b) => a - b);
+    const missing = volumes.length - dated.length;
+    els.dateCoverage.textContent = `${dated.length.toLocaleString()} of ${volumes.length.toLocaleString()} volumes${missing ? " dated" : ""}`;
+    if (dated.length) {
+      els.dateRange.textContent = `${dated[0]}\u2013${dated[dated.length - 1]}`;
+      els.dateMedian.textContent = dated[Math.floor(dated.length / 2)].toString();
+    }
+    const periods = [
+      ["Before 1800", year => year < 1800],
+      ["1800\u20131849", year => year >= 1800 && year < 1850],
+      ["1850\u20131899", year => year >= 1850 && year < 1900],
+      ["1900 and later", year => year >= 1900]
+    ].map(([label, test]) => [label, dated.filter(test).length]);
+    const periodMax = Math.max(...periods.map(period => period[1]), 1);
+    els.dateChart.innerHTML = periods.map(([label, count]) => `<div><span>${label}</span><span class="date-track"><span style="width:${(count / periodMax * 100).toFixed(2)}%"></span></span><strong>${count.toLocaleString()}</strong></div>`).join("");
+
+    renderRanking(els.authorRanking, countBy(records, record => record.workAuthor), label => ({ label, query: label }));
+    renderRanking(els.workRanking, countBy(records, record => `${record.workAuthor}\t${record.workTitle}`), label => {
+      const [author, title] = label.split("\t");
+      return { label: `${title} \u2014 ${author}`, query: title };
+    });
   }
 
   function recordFromCells(columns, cells) {
@@ -130,12 +239,15 @@
   }
 
   function renderMetadata(record) {
+    const years = publicationYears(record.htid);
+    const dateLabel = (hathiDates[record.htid] || []).join(", ") || "Not available";
     els.metadata.innerHTML = [
       metadataRow("HathiTrust ID", record.htid, true),
       metadataRow("CTS work", record.work, true),
       metadataRow("Canonical author", record.workAuthor),
       metadataRow("Canonical work", record.workTitle),
       metadataRow("Language", languageLabel(record.language)),
+      metadataRow("Hathi publication date", dateLabel),
       metadataRow("Mapped pages", record.pages.toLocaleString()),
       metadataRow("Scan range", `${record.beginScan.toLocaleString()}\u2013${record.endScan.toLocaleString()}`),
       metadataRow("Source page range", `${record.minPage.toLocaleString()}\u2013${record.maxPage.toLocaleString()}`)
@@ -197,7 +309,7 @@
     }
   }
 
-  function selectRecord(index) {
+  function selectRecord(index, revealBrowse) {
     state.selected = index;
     const record = records[index];
     els.title.textContent = record.title;
@@ -212,11 +324,12 @@
     renderList();
     refreshAPI(record);
     history.replaceState(null, "", `#${encodeURIComponent(`${record.htid}::${record.work}`)}`);
+    if (revealBrowse) showView("browse");
   }
 
   els.list.addEventListener("click", event => {
     const row = event.target.closest(".record-row");
-    if (row) selectRecord(Number(row.dataset.index));
+    if (row) selectRecord(Number(row.dataset.index), true);
   });
 
   els.search.addEventListener("input", event => {
@@ -225,11 +338,18 @@
     renderList();
   });
 
-  els.chips.forEach(chip => chip.addEventListener("click", () => {
-    state.filter = chip.dataset.filter;
-    state.limit = PAGE_SIZE;
-    els.chips.forEach(item => item.classList.toggle("is-active", item === chip));
-    renderList();
+  els.chips.forEach(chip => chip.addEventListener("click", () => setLanguageFilter(chip.dataset.filter, false)));
+
+  els.overviewTab.addEventListener("click", () => showView("overview"));
+  els.browseTab.addEventListener("click", () => showView("browse"));
+  els.browseRecords.addEventListener("click", () => showView("browse"));
+  els.languageChart.addEventListener("click", event => {
+    const row = event.target.closest("[data-language]");
+    if (row) setLanguageFilter(row.dataset.language, true);
+  });
+  [els.authorRanking, els.workRanking].forEach(list => list.addEventListener("click", event => {
+    const button = event.target.closest("[data-query]");
+    if (button) runSearch(button.dataset.query);
   }));
 
   els.refresh.addEventListener("click", () => refreshAPI(records[state.selected]));
@@ -254,7 +374,9 @@
   const [initialID, initialWork] = decodeURIComponent(location.hash.slice(1)).split("::");
   const initialIndex = records.findIndex(record => record.htid === initialID && (!initialWork || record.work === initialWork));
   els.datasetCount.textContent = records.length.toLocaleString();
-  selectRecord(initialIndex >= 0 ? initialIndex : 0);
+  renderDashboard();
+  selectRecord(initialIndex >= 0 ? initialIndex : 0, false);
+  showView("overview");
 
   window.hathiSheetLoaded = payload => {
     if (payload?.status !== "ok" || !payload.table?.rows?.length) return;
@@ -265,7 +387,9 @@
     els.datasetCount.textContent = records.length.toLocaleString();
     els.sourceStatus.textContent = "Live Google Sheet";
     const liveIndex = records.findIndex(record => record.htid === selectedID && record.work === selectedWork);
-    selectRecord(liveIndex >= 0 ? liveIndex : 0);
+    renderDashboard();
+    selectRecord(liveIndex >= 0 ? liveIndex : 0, false);
+    showView(state.view);
   };
 
   const liveScript = document.createElement("script");
