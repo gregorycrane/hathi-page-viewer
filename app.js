@@ -211,18 +211,33 @@
     };
   }
 
-  function visibleRecords() {
+  function matchesSearch(record) {
     const needle = state.query.trim().toLocaleLowerCase();
+    const haystack = `${record.title} ${record.author} ${record.htid} ${record.work} ${record.workAuthor} ${record.workTitle} ${record.language}`.toLocaleLowerCase();
+    return !needle || haystack.includes(needle);
+  }
+
+  function visibleRecords() {
     return records.filter(record => {
       const matchesFilter = state.filter === "all" || record.language === state.filter;
-      const haystack = `${record.title} ${record.author} ${record.htid} ${record.work} ${record.workAuthor} ${record.workTitle} ${record.language}`.toLocaleLowerCase();
-      return matchesFilter && (!needle || haystack.includes(needle));
+      return matchesFilter && matchesSearch(record);
+    });
+  }
+
+  function renderFilterCounts() {
+    const searchMatches = records.filter(matchesSearch);
+    const languageCounts = new Map(countBy(searchMatches, record => record.language));
+    document.querySelectorAll("[data-count-for]").forEach(node => {
+      const language = node.dataset.countFor;
+      const count = language === "all" ? searchMatches.length : (languageCounts.get(language) || 0);
+      node.textContent = count.toLocaleString();
     });
   }
 
   function renderList() {
     const matches = visibleRecords();
     const visible = matches.slice(0, state.limit);
+    renderFilterCounts();
     els.list.innerHTML = "";
     els.resultCount.textContent = matches.length.toLocaleString();
     els.empty.hidden = matches.length !== 0;
