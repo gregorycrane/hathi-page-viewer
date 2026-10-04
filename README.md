@@ -5,7 +5,7 @@ A static, dependency-free prototype for browsing page-mapped corpus records and 
 ## What it does
 
 - Loads 2,889 records from the public Google Sheet and filters them by language.
-- Falls back to the uploaded CSV snapshot if the live sheet cannot be reached.
+- Falls back to a compact bundled sample if the live sheet cannot be reached.
 - Constructs each HathiTrust ID as `hvd.{book}`.
 - Calls the public HathiTrust volume API and matches the exact ID in `items[]`.
 - Displays the live `rightsCode`, source institution, and count of related copies.
@@ -24,11 +24,11 @@ Then open `http://localhost:8080`.
 
 The included workflow publishes the site automatically. Push this directory as the root of a GitHub repository, then enable **Settings â†’ Pages â†’ Source: GitHub Actions**.
 
-## Rebuilding the data
-
-Run `node scripts/build-records.mjs data/records.csv data/records.js`. The page displays search results in batches of 100, avoiding a 2,889-card initial render. For a 331,000-record deployment, generate a compact search index and paginated record shards rather than linearly searching one giant browser array.
+## Data source and rebuilding
 
 The live source is the [IB1 Commentaries Google Sheet](https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/edit?gid=231332487#gid=231332487).
+
+Download the sheet as `data/records.csv`, then run `node scripts/build-records.mjs data/records.csv data/records.js` to rebuild the bundled fallback. The page displays search results in batches of 100, avoiding a 2,889-card initial render. For a 331,000-record deployment, generate a compact search index and paginated record shards rather than linearly searching one giant browser array.
 
 ## Access note
 
