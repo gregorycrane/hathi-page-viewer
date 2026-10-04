@@ -1,4 +1,31 @@
 (function () {
+  const repairText = value => {
+    if (typeof value !== "string" || !/[\u00c2\u00c3\u00e2]/.test(value)) return value;
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(Array.from(value), char => char.charCodeAt(0)));
+    } catch {
+      return value;
+    }
+  };
+  (window.HATHI_RECORDS || []).forEach(record => {
+    record.title = repairText(record.title);
+    record.author = repairText(record.author);
+  });
+  const repairNode = node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const fixed = repairText(node.nodeValue);
+      if (fixed !== node.nodeValue) node.nodeValue = fixed;
+    } else {
+      node.childNodes.forEach(repairNode);
+    }
+  };
+  new MutationObserver(records => records.forEach(record => {
+    repairNode(record.target);
+    record.addedNodes.forEach(repairNode);
+  })).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+})();
+
+(function () {
   "use strict";
 
   const records = window.HATHI_RECORDS || [];
