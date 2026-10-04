@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Browse selected corpus records and open their HathiTrust page images.">
+  <meta name="description" content="Browse page-mapped corpus records and open exact scans in HathiTrust.">
   <meta name="theme-color" content="#f4f0e7">
   <title>Hathi Page Desk</title>
   <link rel="preconnect" href="https://catalog.hathitrust.org">
@@ -20,53 +20,72 @@
         <small>Corpus record viewer</small>
       </span>
     </a>
-    <div class="header-note">
+    <a class="header-note" href="https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/edit?gid=231332487#gid=231332487" target="_blank" rel="noopener">
       <span class="live-dot" aria-hidden="true"></span>
-      Live HathiTrust metadata
-    </div>
+      <span id="source-status">Loading live Google Sheet</span>
+    </a>
   </header>
 
   <main class="app-shell">
     <aside class="catalog-panel" aria-label="Dataset records">
       <div class="catalog-heading">
         <div>
-          <p class="eyebrow">Test dataset</p>
-          <h1>Six volumes</h1>
+          <p class="eyebrow">Page-mapped dataset</p>
+          <h1><span id="dataset-count">2,889</span> records</h1>
         </div>
         <span class="count" id="result-count">6</span>
       </div>
 
       <label class="search-box" for="search-input">
-        <span aria-hidden="true">⌕</span>
-        <input id="search-input" type="search" placeholder="Title, author, ID…" autocomplete="off">
+        <span aria-hidden="true">âŒ•</span>
+        <input id="search-input" type="search" placeholder="Title, author, IDâ€¦" autocomplete="off">
         <kbd>/</kbd>
       </label>
 
-      <div class="filter-row" role="group" aria-label="Filter records by access">
+      <div class="filter-row" role="group" aria-label="Filter records by language">
         <button class="filter-chip is-active" type="button" data-filter="all">All</button>
-        <button class="filter-chip" type="button" data-filter="pd">Public domain</button>
-        <button class="filter-chip" type="button" data-filter="pdus">US only</button>
+        <button class="filter-chip" type="button" data-filter="ell">Greek</button>
+        <button class="filter-chip" type="button" data-filter="lat">Latin</button>
+        <button class="filter-chip" type="button" data-filter="deu">German</button>
+        <button class="filter-chip" type="button" data-filter="eng">English</button>
+        <button class="filter-chip" type="button" data-filter="fra">French</button>
       </div>
 
       <ol class="record-list" id="record-list" aria-live="polite"></ol>
       <p class="empty-state" id="empty-state" hidden>No records match that search.</p>
+      <button class="load-more" id="load-more" type="button" hidden>Show more records</button>
     </aside>
 
     <section class="workspace" id="record-detail" tabindex="-1">
       <article class="record-header">
         <div class="record-title-block">
           <div class="status-line">
-            <span class="access-badge" id="access-badge">Checking access…</span>
+            <span class="access-badge" id="access-badge">Checking accessâ€¦</span>
             <span class="record-position" id="record-position">1 of 6</span>
           </div>
-          <h2 id="record-title">Loading…</h2>
+          <h2 id="record-title">Loadingâ€¦</h2>
           <p class="byline" id="record-author"></p>
         </div>
         <div class="record-actions">
           <a class="button button-secondary" id="api-link" href="#" target="_blank" rel="noopener">View API JSON</a>
-          <a class="button button-primary" id="hathi-link" href="#" target="_blank" rel="noopener">Open in HathiTrust ↗</a>
+          <a class="button button-primary" id="hathi-link" href="#" target="_blank" rel="noopener">Open in HathiTrust â†—</a>
         </div>
       </article>
+
+      <section class="scan-strip" aria-labelledby="scan-title">
+        <div class="scan-copy">
+          <p class="eyebrow">Mapped HathiTrust scans</p>
+          <h3 id="scan-title"><span id="scan-range">Scans</span></h3>
+          <p id="scan-summary"></p>
+        </div>
+        <div class="scan-controls">
+          <button class="icon-button" id="previous-scan" type="button" aria-label="Previous scan">&larr;</button>
+          <label for="scan-number">Scan</label>
+          <input id="scan-number" type="number" inputmode="numeric">
+          <button class="icon-button" id="next-scan" type="button" aria-label="Next scan">&rarr;</button>
+          <a class="button button-primary" id="scan-link" href="#" target="_blank" rel="noopener">Open scan &nearr;</a>
+        </div>
+      </section>
 
       <div class="content-grid">
         <aside class="metadata-card" aria-labelledby="metadata-title">
@@ -82,7 +101,7 @@
               <span class="api-indicator is-loading" id="api-indicator" aria-hidden="true"></span>
               <div>
                 <strong id="api-status">Checking HathiTrust</strong>
-                <small id="api-detail">Matching the exact volume ID…</small>
+                <small id="api-detail">Matching the exact volume IDâ€¦</small>
               </div>
             </div>
             <button class="text-button" id="refresh-api" type="button">Refresh</button>
@@ -101,14 +120,14 @@
     <li>
       <button class="record-row" type="button">
         <span class="row-topline">
-          <span class="row-year"></span>
-          <span class="row-rights"></span>
+          <span class="row-language"></span>
+          <span class="row-pages"></span>
         </span>
         <strong class="row-title"></strong>
         <span class="row-author"></span>
         <span class="row-footer">
           <code class="row-id"></code>
-          <span class="row-classification"></span>
+          <span class="row-work-title"></span>
         </span>
       </button>
     </li>
