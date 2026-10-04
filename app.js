@@ -3,6 +3,7 @@
 
   let records = window.HATHI_RECORDS || [];
   const hathiDates = window.HATHI_DATES || {};
+  const hathiBiblio = window.HATHI_BIBLIO || {};
   const PAGE_SIZE = 100;
   const SHEET_QUERY = "https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/gviz/tq?tqx=responseHandler:hathiSheetLoaded&gid=231332487";
   const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5" };
@@ -76,6 +77,14 @@
 
   function scanURL(record, sequence) {
     return `https://babel.hathitrust.org/cgi/pt?id=${encodeURIComponent(record.htid)}&seq=${sequence}`;
+  }
+
+  function bibliography(record) {
+    return hathiBiblio[record.htid] || {};
+  }
+
+  function publicationLabel(biblio) {
+    return [biblio.place, biblio.publisher].filter(Boolean).join(" ") || "Not listed";
   }
 
   function languageLabel(language) {
@@ -245,6 +254,7 @@
     els.loadMore.textContent = `Show more (${(matches.length - visible.length).toLocaleString()} remaining)`;
 
     visible.forEach(record => {
+      const biblio = bibliography(record);
       const index = records.indexOf(record);
       const node = els.template.content.cloneNode(true);
       const button = node.querySelector(".record-row");
@@ -253,8 +263,13 @@
       button.setAttribute("aria-current", index === state.selected ? "true" : "false");
       node.querySelector(".row-language").textContent = languageLabel(record.language);
       node.querySelector(".row-pages").textContent = `${record.pages.toLocaleString()} mapped pages`;
-      node.querySelector(".row-title").textContent = record.title;
+      node.querySelector(".row-title").textContent = biblio.title || record.title;
       node.querySelector(".row-author").textContent = record.author;
+      node.querySelector(".row-date").textContent = [biblio.date, biblio.volume].filter(Boolean).join(" · ") || "Not listed";
+      node.querySelector(".row-publisher").textContent = publicationLabel(biblio);
+      node.querySelector(".row-editor").textContent = biblio.editors?.join("; ") || biblio.responsibility || "Not listed";
+      node.querySelector(".row-page-detail").textContent = `${record.pages.toLocaleString()} mapped · print ${record.minPage.toLocaleString()}–${record.maxPage.toLocaleString()} · scans ${record.beginScan.toLocaleString()}–${record.endScan.toLocaleString()}`;
+      node.querySelector(".row-physical").textContent = biblio.physical || "Not listed";
       node.querySelector(".row-id").textContent = record.htid;
       node.querySelector(".row-work-title").textContent = `${record.workAuthor} \u00b7 ${record.workTitle}`;
       els.list.appendChild(node);
@@ -266,15 +281,21 @@
   }
 
   function renderMetadata(record) {
+    const biblio = bibliography(record);
     const years = publicationYears(record.htid);
-    const dateLabel = (hathiDates[record.htid] || []).join(", ") || "Not available";
+    const dateLabel = biblio.date || (hathiDates[record.htid] || []).join(", ") || "Not available";
     els.metadata.innerHTML = [
       metadataRow("HathiTrust ID", record.htid, true),
+      metadataRow("Full catalog title", biblio.title || record.title),
+      metadataRow("Publication date", dateLabel),
+      metadataRow("Publisher", publicationLabel(biblio)),
+      metadataRow("Editor", biblio.editors?.join("; ") || biblio.responsibility || "Not listed"),
+      metadataRow("Volume", biblio.volume || "Not listed"),
+      metadataRow("Physical description", biblio.physical || "Not listed"),
       metadataRow("CTS work", record.work, true),
       metadataRow("Canonical author", record.workAuthor),
       metadataRow("Canonical work", record.workTitle),
       metadataRow("Language", languageLabel(record.language)),
-      metadataRow("Hathi publication date", dateLabel),
       metadataRow("Mapped pages", record.pages.toLocaleString()),
       metadataRow("Scan range", `${record.beginScan.toLocaleString()}\u2013${record.endScan.toLocaleString()}`),
       metadataRow("Source page range", `${record.minPage.toLocaleString()}\u2013${record.maxPage.toLocaleString()}`)
@@ -339,7 +360,7 @@
   function selectRecord(index, revealBrowse) {
     state.selected = index;
     const record = records[index];
-    els.title.textContent = record.title;
+    els.title.textContent = bibliography(record).title || record.title;
     els.author.textContent = record.author;
     els.position.textContent = `${index + 1} of ${records.length}`;
     els.access.textContent = rightsLabel(record.rights);
