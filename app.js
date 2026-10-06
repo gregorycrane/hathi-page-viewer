@@ -6,7 +6,7 @@
   const hathiBiblio = window.HATHI_BIBLIO || {};
   const PAGE_SIZE = 100;
   const SHEET_QUERY = "https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/gviz/tq?tqx=responseHandler:hathiSheetLoaded&gid=231332487";
-  const state = { selected: 0, filter: "all", query: "", sort: "dataset", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5" };
+  const state = { selected: 0, filter: "all", query: "", sort: "dataset", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5", authorOrder: "mapped", workOrder: "mapped" };
 
   const els = {
     list: document.querySelector("#record-list"),
@@ -56,6 +56,8 @@
     ,workRanking: document.querySelector("#work-ranking")
     ,authorLimit: document.querySelector("#author-limit")
     ,workLimit: document.querySelector("#work-limit")
+    ,authorOrder: document.querySelector("#author-order")
+    ,workOrder: document.querySelector("#work-order")
     ,authorSummary: document.querySelector("#author-summary")
     ,workSummary: document.querySelector("#work-summary")
   };
@@ -131,11 +133,14 @@
     showView("browse");
   }
 
-  function renderRanking(target, entries, formatter, requestedLimit, summary, noun) {
+  function renderRanking(target, entries, formatter, requestedLimit, order, summary, noun) {
     const showAll = requestedLimit === "all";
     const limit = showAll ? entries.length : Number(requestedLimit);
     target.closest(".ranking-card").classList.toggle("is-expanded", showAll);
-    summary.textContent = showAll ? `All ${entries.length.toLocaleString()} ${noun}` : `Top ${limit.toLocaleString()} of ${entries.length.toLocaleString()} ${noun}`;
+    const orderLabel = order === "alpha" ? "alphabetically" : "by mapped records";
+    summary.textContent = showAll
+      ? `All ${entries.length.toLocaleString()} ${noun}, ${orderLabel}`
+      : `${order === "alpha" ? "First" : "Top"} ${limit.toLocaleString()} of ${entries.length.toLocaleString()} ${noun}, ${orderLabel}`;
     target.innerHTML = entries.slice(0, limit).map(([label, count]) => {
       const display = formatter ? formatter(label) : label;
       return `<li><button type="button" data-query="${escapeHTML(display.query)}"><span>${escapeHTML(display.label)}</span><strong>${count.toLocaleString()}</strong></button></li>`;
@@ -143,11 +148,24 @@
   }
 
   function renderRankings() {
-    renderRanking(els.authorRanking, countBy(records, record => record.workAuthor), label => ({ label, query: label }), state.authorLimit, els.authorSummary, "authors");
-    renderRanking(els.workRanking, countBy(records, record => `${record.workAuthor}\t${record.workTitle}`), label => {
+    const authorEntries = countBy(records, record => record.workAuthor);
+    const workEntries = countBy(records, record => `${record.workAuthor}\t${record.workTitle}`);
+    if (state.authorOrder === "alpha") {
+      authorEntries.sort(([left], [right]) => left.localeCompare(right, undefined, { sensitivity: "base" }));
+    }
+    if (state.workOrder === "alpha") {
+      workEntries.sort(([left], [right]) => {
+        const [leftAuthor, leftTitle] = left.split("\t");
+        const [rightAuthor, rightTitle] = right.split("\t");
+        return leftTitle.localeCompare(rightTitle, undefined, { sensitivity: "base" })
+          || leftAuthor.localeCompare(rightAuthor, undefined, { sensitivity: "base" });
+      });
+    }
+    renderRanking(els.authorRanking, authorEntries, label => ({ label, query: label }), state.authorLimit, state.authorOrder, els.authorSummary, "authors");
+    renderRanking(els.workRanking, workEntries, label => {
       const [author, title] = label.split("\t");
       return { label: `${title} \u2014 ${author}`, query: title };
-    }, state.workLimit, els.workSummary, "works");
+    }, state.workLimit, state.workOrder, els.workSummary, "works");
   }
 
   function renderDashboard() {
@@ -458,6 +476,14 @@
   });
   els.workLimit.addEventListener("change", event => {
     state.workLimit = event.target.value;
+    renderRankings();
+  });
+  els.authorOrder.addEventListener("change", event => {
+    state.authorOrder = event.target.value;
+    renderRankings();
+  });
+  els.workOrder.addEventListener("change", event => {
+    state.workOrder = event.target.value;
     renderRankings();
   });
 

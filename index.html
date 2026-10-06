@@ -8,7 +8,7 @@
   <title>Hathi Page Desk</title>
   <link rel="preconnect" href="https://catalog.hathitrust.org">
   <link rel="preconnect" href="https://hdl.handle.net">
-  <link rel="stylesheet" href="styles.css?v=20261006-1">
+  <link rel="stylesheet" href="styles.css?v=20261006-2">
 </head>
 <body>
   <a class="skip-link" href="#record-detail">Skip to selected record</a>
@@ -114,8 +114,11 @@
 
           <section class="dashboard-card ranking-card" aria-labelledby="author-title">
             <div class="card-heading">
-              <div><p class="eyebrow">Most mapped</p><h3 id="author-title">Classical authors</h3></div>
-              <label class="ranking-limit" for="author-limit"><span>Show</span><select id="author-limit"><option value="5">Top 5</option><option value="10">Top 10</option><option value="25">Top 25</option><option value="all">All authors</option></select></label>
+              <div><p class="eyebrow">Browse corpus</p><h3 id="author-title">Classical authors</h3></div>
+              <div class="ranking-controls">
+                <label class="ranking-limit" for="author-order"><span>Order</span><select id="author-order"><option value="mapped">Most mapped</option><option value="alpha">Alphabetical A–Z</option></select></label>
+                <label class="ranking-limit" for="author-limit"><span>Show</span><select id="author-limit"><option value="5">First 5</option><option value="10">First 10</option><option value="25">First 25</option><option value="all">All authors</option></select></label>
+              </div>
             </div>
             <p class="ranking-summary" id="author-summary">Top 5 of 177 authors</p>
             <ol class="ranking-list" id="author-ranking"></ol>
@@ -123,8 +126,11 @@
 
           <section class="dashboard-card ranking-card" aria-labelledby="work-title">
             <div class="card-heading">
-              <div><p class="eyebrow">Most mapped</p><h3 id="work-title">Classical works</h3></div>
-              <label class="ranking-limit" for="work-limit"><span>Show</span><select id="work-limit"><option value="5">Top 5</option><option value="10">Top 10</option><option value="25">Top 25</option><option value="all">All works</option></select></label>
+              <div><p class="eyebrow">Browse corpus</p><h3 id="work-title">Classical works</h3></div>
+              <div class="ranking-controls">
+                <label class="ranking-limit" for="work-order"><span>Order</span><select id="work-order"><option value="mapped">Most mapped</option><option value="alpha">Alphabetical A–Z</option></select></label>
+                <label class="ranking-limit" for="work-limit"><span>Show</span><select id="work-limit"><option value="5">First 5</option><option value="10">First 10</option><option value="25">First 25</option><option value="all">All works</option></select></label>
+              </div>
             </div>
             <p class="ranking-summary" id="work-summary">Top 5 of 732 works</p>
             <ol class="ranking-list" id="work-ranking"></ol>
@@ -220,6 +226,6 @@
   <script src="data/records.js?v=20261004-3"></script>
   <script src="data/dates.js?v=20261004-3"></script>
   <script src="data/biblio.js?v=20261004-1"></script>
-  <script src="app.js?v=20261006-2"></script>
+  <script src="app.js?v=20261006-3"></script>
 </body>
 </html>

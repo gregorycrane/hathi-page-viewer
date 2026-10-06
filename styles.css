@@ -88,9 +88,7 @@ a { color: inherit; }
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
-  max-height: calc(100vh - 76px);
   overflow-x: hidden;
-  overflow-y: auto;
   padding: 26px 20px 28px;
   border-left: 1px solid var(--line);
   background: #ebe5d9;
@@ -205,6 +203,7 @@ a { color: inherit; }
 .date-track > span { background: var(--rust); }
 .source-note { margin: 17px 0 0; padding-top: 13px; border-top: 1px solid #e8e2d8; color: var(--muted); font-size: 10px; }
 .ranking-limit { display: grid; gap: 3px; color: var(--muted); font-size: 9px; font-weight: 750; text-transform: uppercase; letter-spacing: .07em; }
+.ranking-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .ranking-limit select { min-width: 104px; height: 32px; padding: 0 27px 0 9px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); font: 700 10px/1 var(--sans); text-transform: none; letter-spacing: 0; cursor: pointer; }
 .ranking-limit select:focus { border-color: var(--forest); outline: 3px solid rgba(31,88,71,.10); }
 .ranking-summary { margin: -8px 0 7px; color: var(--muted); font-size: 10px; }
