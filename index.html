@@ -8,7 +8,7 @@
   <title>Hathi Page Desk</title>
   <link rel="preconnect" href="https://catalog.hathitrust.org">
   <link rel="preconnect" href="https://hdl.handle.net">
-  <link rel="stylesheet" href="styles.css?v=20261006-2">
+  <link rel="stylesheet" href="styles.css?v=20261006-3">
 </head>
 <body>
   <a class="skip-link" href="#record-detail">Skip to selected record</a>
@@ -172,22 +172,24 @@
       <div class="content-grid">
         <aside class="metadata-card" aria-labelledby="metadata-title">
           <div class="metadata-heading">
-            <p class="eyebrow">Selected record</p>
-            <h3 id="metadata-title">Metadata</h3>
+            <div>
+              <p class="eyebrow">Selected record</p>
+              <h3 id="metadata-title">Metadata</h3>
+            </div>
+
+            <div class="api-card" id="api-card">
+              <div class="api-state">
+                <span class="api-indicator is-loading" id="api-indicator" aria-hidden="true"></span>
+                <div>
+                  <strong id="api-status">Checking HathiTrust</strong>
+                  <small id="api-detail">Matching the exact volume ID&hellip;</small>
+                </div>
+              </div>
+              <button class="text-button" id="refresh-api" type="button">Refresh</button>
+            </div>
           </div>
 
           <dl class="metadata-list" id="metadata-list"></dl>
-
-          <div class="api-card" id="api-card">
-            <div class="api-state">
-              <span class="api-indicator is-loading" id="api-indicator" aria-hidden="true"></span>
-              <div>
-                <strong id="api-status">Checking HathiTrust</strong>
-                <small id="api-detail">Matching the exact volume ID&hellip;</small>
-              </div>
-            </div>
-            <button class="text-button" id="refresh-api" type="button">Refresh</button>
-          </div>
 
           <details class="technical-details">
             <summary>Dataset measurements</summary>
