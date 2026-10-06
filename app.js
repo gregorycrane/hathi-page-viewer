@@ -223,7 +223,21 @@
 
   function matchesSearch(record) {
     const needle = state.query.trim().toLocaleLowerCase();
-    const haystack = `${record.title} ${record.author} ${record.htid} ${record.work} ${record.workAuthor} ${record.workTitle} ${record.language}`.toLocaleLowerCase();
+    const biblio = bibliography(record);
+    const haystack = [
+      record.title,
+      record.author,
+      record.htid,
+      record.work,
+      record.workAuthor,
+      record.workTitle,
+      record.language,
+      biblio.title,
+      biblio.responsibility,
+      ...(biblio.editors || []),
+      biblio.place,
+      biblio.publisher
+    ].filter(Boolean).join(" ").toLocaleLowerCase();
     return !needle || haystack.includes(needle);
   }
 
