@@ -6,7 +6,7 @@
   const hathiBiblio = window.HATHI_BIBLIO || {};
   const PAGE_SIZE = 100;
   const SHEET_QUERY = "https://docs.google.com/spreadsheets/d/14b6_shYOx9t-HBOiVRavhvMS9CBoonx-hrplI-h8BTU/gviz/tq?tqx=responseHandler:hathiSheetLoaded&gid=231332487";
-  const state = { selected: 0, filter: "all", query: "", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5" };
+  const state = { selected: 0, filter: "all", query: "", sort: "dataset", sequence: null, limit: PAGE_SIZE, view: "overview", authorLimit: "5", workLimit: "5" };
 
   const els = {
     list: document.querySelector("#record-list"),
@@ -16,6 +16,7 @@
     sourceStatus: document.querySelector("#source-status"),
     empty: document.querySelector("#empty-state"),
     search: document.querySelector("#search-input"),
+    sort: document.querySelector("#sort-select"),
     chips: Array.from(document.querySelectorAll(".filter-chip")),
     access: document.querySelector("#access-badge"),
     position: document.querySelector("#record-position"),
@@ -226,11 +227,43 @@
     return !needle || haystack.includes(needle);
   }
 
+  function recordYear(record) {
+    const biblioYears = String(bibliography(record).date || "").match(/\b(1[5-9]\d{2}|20\d{2})\b/g) || [];
+    const years = biblioYears.map(Number).concat(publicationYears(record.htid));
+    return years.length ? Math.min(...years) : null;
+  }
+
+  function recordEditor(record) {
+    const biblio = bibliography(record);
+    return (biblio.editors?.join("; ") || biblio.responsibility || "").trim();
+  }
+
+  function sortRecords(values) {
+    if (state.sort === "dataset") return values;
+    return values.sort((left, right) => {
+      if (state.sort.startsWith("date-")) {
+        const leftYear = recordYear(left);
+        const rightYear = recordYear(right);
+        if (leftYear === null && rightYear === null) return 0;
+        if (leftYear === null) return 1;
+        if (rightYear === null) return -1;
+        return state.sort === "date-oldest" ? leftYear - rightYear : rightYear - leftYear;
+      }
+      const leftEditor = recordEditor(left);
+      const rightEditor = recordEditor(right);
+      if (!leftEditor && !rightEditor) return 0;
+      if (!leftEditor) return 1;
+      if (!rightEditor) return -1;
+      const direction = state.sort === "editor-za" ? -1 : 1;
+      return leftEditor.localeCompare(rightEditor, undefined, { sensitivity: "base" }) * direction;
+    });
+  }
+
   function visibleRecords() {
-    return records.filter(record => {
+    return sortRecords(records.filter(record => {
       const matchesFilter = state.filter === "all" || record.language === state.filter;
       return matchesFilter && matchesSearch(record);
-    });
+    }));
   }
 
   function renderFilterCounts() {
@@ -382,6 +415,12 @@
 
   els.search.addEventListener("input", event => {
     state.query = event.target.value;
+    state.limit = PAGE_SIZE;
+    renderList();
+  });
+
+  els.sort.addEventListener("change", event => {
+    state.sort = event.target.value;
     state.limit = PAGE_SIZE;
     renderList();
   });
