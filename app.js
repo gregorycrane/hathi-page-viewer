@@ -60,6 +60,7 @@
     ,workOrder: document.querySelector("#work-order")
     ,authorSummary: document.querySelector("#author-summary")
     ,workSummary: document.querySelector("#work-summary")
+    ,workIndex: document.querySelector("#work-index")
   };
 
   function escapeHTML(value) {
@@ -137,13 +138,47 @@
     const showAll = requestedLimit === "all";
     const limit = showAll ? entries.length : Number(requestedLimit);
     target.closest(".ranking-card").classList.toggle("is-expanded", showAll);
-    const orderLabel = order === "alpha" ? "alphabetically" : "by mapped records";
+    const orderLabel = order === "alpha"
+      ? "alphabetically"
+      : order === "work-author" ? "by work, then author" : "by mapped records";
     summary.textContent = showAll
       ? `All ${entries.length.toLocaleString()} ${noun}, ${orderLabel}`
-      : `${order === "alpha" ? "First" : "Top"} ${limit.toLocaleString()} of ${entries.length.toLocaleString()} ${noun}, ${orderLabel}`;
+      : `${order === "mapped" ? "Top" : "First"} ${limit.toLocaleString()} of ${entries.length.toLocaleString()} ${noun}, ${orderLabel}`;
     target.innerHTML = entries.slice(0, limit).map(([label, count]) => {
       const display = formatter ? formatter(label) : label;
       return `<li><button type="button" data-query="${escapeHTML(display.query)}"><span>${escapeHTML(display.label)}</span><strong>${count.toLocaleString()}</strong></button></li>`;
+    }).join("");
+  }
+
+  function renderWorkFacets(entries) {
+    const groups = [];
+    entries.forEach(([label, count]) => {
+      const [author, title] = label.split("\t");
+      const previous = groups[groups.length - 1];
+      if (!previous || previous.author !== author) groups.push({ author, works: [] });
+      groups[groups.length - 1].works.push({ title, count });
+    });
+
+    const letters = new Map();
+    groups.forEach((group, index) => {
+      const initial = (group.author.match(/[A-Za-z]/)?.[0] || "#").toUpperCase();
+      if (!letters.has(initial)) letters.set(initial, index);
+    });
+
+    els.workIndex.hidden = false;
+    els.workIndex.innerHTML = [...letters].map(([letter, index]) =>
+      `<button type="button" data-facet-index="${index}" aria-label="Jump to authors beginning with ${escapeHTML(letter)}">${escapeHTML(letter)}</button>`
+    ).join("");
+    els.workRanking.classList.add("is-faceted");
+    els.workRanking.closest(".ranking-card").classList.add("is-expanded");
+    els.workLimit.value = "all";
+    els.workLimit.disabled = true;
+    els.workSummary.textContent = `All ${entries.length.toLocaleString()} works, grouped under ${groups.length.toLocaleString()} authors`;
+    els.workRanking.innerHTML = groups.map((group, index) => {
+      const rows = group.works.map(work =>
+        `<li><button type="button" data-query="${escapeHTML(work.title)}"><span>${escapeHTML(work.title)}</span><strong>${work.count.toLocaleString()}</strong></button></li>`
+      ).join("");
+      return `<li class="work-facet" id="work-facet-${index}"><h4><span>${escapeHTML(group.author)}</span><strong>${group.works.length.toLocaleString()} ${group.works.length === 1 ? "work" : "works"}</strong></h4><ol class="facet-ranking-list">${rows}</ol></li>`;
     }).join("");
   }
 
@@ -153,19 +188,34 @@
     if (state.authorOrder === "alpha") {
       authorEntries.sort(([left], [right]) => left.localeCompare(right, undefined, { sensitivity: "base" }));
     }
-    if (state.workOrder === "alpha") {
+    if (state.workOrder === "work-author") {
       workEntries.sort(([left], [right]) => {
         const [leftAuthor, leftTitle] = left.split("\t");
         const [rightAuthor, rightTitle] = right.split("\t");
         return leftTitle.localeCompare(rightTitle, undefined, { sensitivity: "base" })
           || leftAuthor.localeCompare(rightAuthor, undefined, { sensitivity: "base" });
       });
+    } else if (state.workOrder === "author-work") {
+      workEntries.sort(([left], [right]) => {
+        const [leftAuthor, leftTitle] = left.split("\t");
+        const [rightAuthor, rightTitle] = right.split("\t");
+        return leftAuthor.localeCompare(rightAuthor, undefined, { sensitivity: "base" })
+          || leftTitle.localeCompare(rightTitle, undefined, { sensitivity: "base" });
+      });
     }
     renderRanking(els.authorRanking, authorEntries, label => ({ label, query: label }), state.authorLimit, state.authorOrder, els.authorSummary, "authors");
-    renderRanking(els.workRanking, workEntries, label => {
-      const [author, title] = label.split("\t");
-      return { label: `${title} \u2014 ${author}`, query: title };
-    }, state.workLimit, state.workOrder, els.workSummary, "works");
+    if (state.workOrder === "author-work") {
+      renderWorkFacets(workEntries);
+    } else {
+      els.workIndex.hidden = true;
+      els.workIndex.innerHTML = "";
+      els.workLimit.disabled = false;
+      els.workRanking.classList.remove("is-faceted");
+      renderRanking(els.workRanking, workEntries, label => {
+        const [author, title] = label.split("\t");
+        return { label: `${title} \u2014 ${author}`, query: title };
+      }, state.workLimit, state.workOrder, els.workSummary, "works");
+    }
   }
 
   function renderDashboard() {
@@ -488,11 +538,19 @@
   });
   els.workOrder.addEventListener("change", event => {
     state.workOrder = event.target.value;
-    if (state.workOrder === "alpha") {
+    if (state.workOrder !== "mapped") {
       state.workLimit = "all";
       els.workLimit.value = "all";
     }
     renderRankings();
+  });
+  els.workIndex.addEventListener("click", event => {
+    const button = event.target.closest("[data-facet-index]");
+    const facet = button && document.querySelector(`#work-facet-${button.dataset.facetIndex}`);
+    if (!facet) return;
+    const listTop = els.workRanking.getBoundingClientRect().top;
+    const facetTop = facet.getBoundingClientRect().top;
+    els.workRanking.scrollTo({ top: els.workRanking.scrollTop + facetTop - listTop, behavior: "smooth" });
   });
 
   els.refresh.addEventListener("click", () => refreshAPI(records[state.selected]));

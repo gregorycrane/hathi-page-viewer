@@ -8,7 +8,7 @@
   <title>Harvard IB1 Classics Commentary Browser</title>
   <link rel="preconnect" href="https://catalog.hathitrust.org">
   <link rel="preconnect" href="https://hdl.handle.net">
-  <link rel="stylesheet" href="styles.css?v=20261006-4">
+  <link rel="stylesheet" href="styles.css?v=20261006-5">
 </head>
 <body>
   <a class="skip-link" href="#record-detail">Skip to selected record</a>
@@ -128,11 +128,12 @@
             <div class="card-heading">
               <div><p class="eyebrow">Browse corpus</p><h3 id="work-title">Classical works</h3></div>
               <div class="ranking-controls">
-                <label class="ranking-limit" for="work-order"><span>Order</span><select id="work-order"><option value="mapped">Most mapped</option><option value="alpha">Alphabetical A–Z</option></select></label>
+                <label class="ranking-limit" for="work-order"><span>Order</span><select id="work-order"><option value="mapped">Most mapped</option><option value="work-author">Work → author</option><option value="author-work">Author → work</option></select></label>
                 <label class="ranking-limit" for="work-limit"><span>Show</span><select id="work-limit"><option value="5">First 5</option><option value="10">First 10</option><option value="25">First 25</option><option value="all">All works</option></select></label>
               </div>
             </div>
             <p class="ranking-summary" id="work-summary">Top 5 of 732 works</p>
+            <nav class="ranking-index" id="work-index" aria-label="Jump to authors by initial" hidden></nav>
             <ol class="ranking-list" id="work-ranking"></ol>
           </section>
         </div>
@@ -228,6 +229,6 @@
   <script src="data/records.js?v=20261004-3"></script>
   <script src="data/dates.js?v=20261004-3"></script>
   <script src="data/biblio.js?v=20261004-1"></script>
-  <script src="app.js?v=20261006-4"></script>
+  <script src="app.js?v=20261006-5"></script>
 </body>
 </html>

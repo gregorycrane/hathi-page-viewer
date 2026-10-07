@@ -207,6 +207,10 @@ a { color: inherit; }
 .ranking-limit select { min-width: 104px; height: 32px; padding: 0 27px 0 9px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); font: 700 10px/1 var(--sans); text-transform: none; letter-spacing: 0; cursor: pointer; }
 .ranking-limit select:focus { border-color: var(--forest); outline: 3px solid rgba(31,88,71,.10); }
 .ranking-summary { margin: -8px 0 7px; color: var(--muted); font-size: 10px; }
+.ranking-index { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 9px; padding: 7px 0 9px; border-bottom: 1px solid #e8e2d8; }
+.ranking-index[hidden] { display: none; }
+.ranking-index button { min-width: 24px; height: 24px; padding: 0 5px; border: 1px solid var(--line); border-radius: 5px; background: #f4f0e7; color: var(--forest); font: 750 9px/1 var(--sans); cursor: pointer; }
+.ranking-index button:hover, .ranking-index button:focus { border-color: var(--forest); background: #dce8e2; outline: 0; }
 .ranking-list { margin: 0; padding: 0; list-style: none; counter-reset: rank; }
 .ranking-card.is-expanded .ranking-list { max-height: 520px; overflow-y: auto; padding-right: 7px; scrollbar-color: #b8b1a5 transparent; }
 .ranking-list li { counter-increment: rank; border-top: 1px solid #ece6dc; }
@@ -216,6 +220,14 @@ a { color: inherit; }
 .ranking-list button:hover span { color: var(--forest); text-decoration: underline; }
 .ranking-list span { min-width: 0; overflow-wrap: anywhere; font-size: 11px; }
 .ranking-list strong { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.ranking-list.is-faceted { counter-reset: none; }
+.ranking-list.is-faceted > .work-facet { counter-increment: none; border-top: 0; scroll-margin-top: 34px; }
+.work-facet h4 { position: sticky; z-index: 2; top: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0; padding: 8px 6px; border-bottom: 1px solid #d9d0c1; background: #eee7da; color: var(--forest-deep); font: 700 11px/1.25 var(--sans); }
+.work-facet h4 strong { white-space: nowrap; font-size: 9px; }
+.facet-ranking-list { margin: 0; padding: 0 5px 5px 15px; list-style: none; }
+.ranking-list.is-faceted .facet-ranking-list li { counter-increment: none; }
+.ranking-list.is-faceted .facet-ranking-list button { grid-template-columns: minmax(0, 1fr) auto; padding: 7px 0; }
+.ranking-list.is-faceted .facet-ranking-list button::before { display: none; }
 .record-header { display: flex; align-items: end; justify-content: space-between; gap: 26px; margin-bottom: 26px; }
 .status-line { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .access-badge { padding: 4px 8px; border-radius: 4px; background: #e0ebe5; color: var(--forest); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
