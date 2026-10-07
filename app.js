@@ -10,6 +10,7 @@
 
   const els = {
     list: document.querySelector("#record-list"),
+    catalog: document.querySelector(".catalog-panel"),
     template: document.querySelector("#record-template"),
     resultCount: document.querySelector("#result-count"),
     datasetCount: document.querySelector("#dataset-count"),
@@ -52,6 +53,7 @@
     ,dateRange: document.querySelector("#date-range")
     ,dateMedian: document.querySelector("#date-median")
     ,dateChart: document.querySelector("#date-chart")
+    ,dateNote: document.querySelector("#date-source-note")
     ,authorRanking: document.querySelector("#author-ranking")
     ,workRanking: document.querySelector("#work-ranking")
     ,authorLimit: document.querySelector("#author-limit")
@@ -116,12 +118,24 @@
     els.browseTab.classList.toggle("is-active", !overview);
   }
 
-  function setLanguageFilter(language, revealBrowse) {
+  function setLanguageFilter(language, options = {}) {
+    const { revealBrowse = false, revealResults = false, clearSearch = false } = options;
+    if (clearSearch) {
+      state.query = "";
+      els.search.value = "";
+    }
     state.filter = language;
     state.limit = PAGE_SIZE;
     els.chips.forEach(chip => chip.classList.toggle("is-active", chip.dataset.filter === language));
     renderList();
     if (revealBrowse) showView("browse");
+    if (revealResults) {
+      requestAnimationFrame(() => {
+        const panelTop = els.catalog.getBoundingClientRect().top;
+        const listTop = els.list.getBoundingClientRect().top;
+        els.catalog.scrollTo({ top: els.catalog.scrollTop + listTop - panelTop - 12, behavior: "smooth" });
+      });
+    }
   }
 
   function runSearch(query) {
@@ -242,7 +256,8 @@
 
     const dated = volumes.map(htid => publicationYears(htid)).filter(years => years.length).map(years => Math.min(...years)).sort((a, b) => a - b);
     const missing = volumes.length - dated.length;
-    els.dateCoverage.textContent = `${dated.length.toLocaleString()} of ${volumes.length.toLocaleString()} volumes${missing ? " dated" : ""}`;
+    els.dateCoverage.textContent = `${dated.length.toLocaleString()} dated \u00b7 ${missing.toLocaleString()} undated`;
+    els.dateNote.innerHTML = `<strong>Volume totals, not mapped-record totals.</strong> These bars total ${dated.length.toLocaleString()} dated volumes; ${missing === 1 ? "one volume is" : `${missing.toLocaleString()} volumes are`} undated. A volume can supply several of the dataset's ${records.length.toLocaleString()} mapped records.`;
     if (dated.length) {
       els.dateRange.textContent = `${dated[0]}\u2013${dated[dated.length - 1]}`;
       els.dateMedian.textContent = dated[Math.floor(dated.length / 2)].toString();
@@ -507,14 +522,14 @@
     renderList();
   });
 
-  els.chips.forEach(chip => chip.addEventListener("click", () => setLanguageFilter(chip.dataset.filter, false)));
+  els.chips.forEach(chip => chip.addEventListener("click", () => setLanguageFilter(chip.dataset.filter)));
 
   els.overviewTab.addEventListener("click", () => showView("overview"));
   els.browseTab.addEventListener("click", () => showView("browse"));
   els.browseRecords.addEventListener("click", () => showView("browse"));
   els.languageChart.addEventListener("click", event => {
     const row = event.target.closest("[data-language]");
-    if (row) setLanguageFilter(row.dataset.language, true);
+    if (row) setLanguageFilter(row.dataset.language, { clearSearch: true, revealResults: true });
   });
   [els.authorRanking, els.workRanking].forEach(list => list.addEventListener("click", event => {
     const button = event.target.closest("[data-query]");

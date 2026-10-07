@@ -101,15 +101,15 @@
 
           <section class="dashboard-card date-card" aria-labelledby="date-title">
             <div class="card-heading">
-              <div><p class="eyebrow">HathiTrust metadata</p><h3 id="date-title">Publication dates</h3></div>
-              <span id="date-coverage">1,487 of 1,488 volumes</span>
+              <div><p class="eyebrow">Unique HathiTrust volumes</p><h3 id="date-title">Publication dates by volume</h3></div>
+              <span id="date-coverage">1,487 dated &middot; 1 undated</span>
             </div>
             <div class="date-summary">
               <div><strong id="date-range">1644&ndash;1988</strong><span>Catalog range</span></div>
               <div><strong id="date-median">1860</strong><span>Median year</span></div>
             </div>
             <div class="date-chart" id="date-chart" aria-label="Volumes by publication period"></div>
-            <p class="source-note">Dates come from each volume's HathiTrust bibliographic record. The uploaded CSV contains page mappings but no publication-year column.</p>
+            <p class="source-note" id="date-source-note"><strong>Volume totals, not mapped-record totals.</strong> These bars total 1,487 dated volumes; one volume is undated. A volume can supply several of the dataset's 2,889 mapped records.</p>
           </section>
 
           <section class="dashboard-card ranking-card" aria-labelledby="author-title">
@@ -229,6 +229,6 @@
   <script src="data/records.js?v=20261004-3"></script>
   <script src="data/dates.js?v=20261004-3"></script>
   <script src="data/biblio.js?v=20261004-1"></script>
-  <script src="app.js?v=20261006-5"></script>
+  <script src="app.js?v=20261006-7"></script>
 </body>
 </html>
