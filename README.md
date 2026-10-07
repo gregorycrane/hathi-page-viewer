@@ -1,6 +1,6 @@
-# Hathi Page Desk
+# Harvard IB1 Classics Commentary Browser
 
-A static, dependency-free prototype for browsing page-mapped corpus records and opening exact HathiTrust scans.
+A static, dependency-free browser for Harvard IB1 Classics commentaries, their page mappings, and exact HathiTrust scans.
 
 ## What it does
 

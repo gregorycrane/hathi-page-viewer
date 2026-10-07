@@ -480,10 +480,18 @@
   });
   els.authorOrder.addEventListener("change", event => {
     state.authorOrder = event.target.value;
+    if (state.authorOrder === "alpha") {
+      state.authorLimit = "all";
+      els.authorLimit.value = "all";
+    }
     renderRankings();
   });
   els.workOrder.addEventListener("change", event => {
     state.workOrder = event.target.value;
+    if (state.workOrder === "alpha") {
+      state.workLimit = "all";
+      els.workLimit.value = "all";
+    }
     renderRankings();
   });
 
